@@ -1,0 +1,28 @@
+.logo-img{
+  width: 30%;
+}
+
+
+div.secondary.callout.text-center{
+  min-height: 242px;
+}
+ .tamanocompleto{
+        width: 100%;
+      }
+      body{
+        color: #fff;
+        background: url("../img/fondo.jpg");
+      }
+      .imguser{
+        width: 60px;
+        height: 50px;
+      }
+      .alingleft{
+        text-align: left;
+      }
+           .alingright{
+        text-align: right;
+      }
+      .fondo2{
+        background: rgba(77, 69, 173, 0.61)
+      }
