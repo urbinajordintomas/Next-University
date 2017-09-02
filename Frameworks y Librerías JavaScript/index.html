@@ -1,0 +1,1093 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,user-scalable=no">
+  <title>Juego</title>
+    <script src="js/jquery.min.js"></script>
+    <script src="js/jquery-ui.min.js"></script>
+  <!--<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>-->
+  <link rel="stylesheet" href="css/jquery-ui.min.css">
+  <link rel="stylesheet" href="css/estilos.css">
+<script type="text/javascript">
+var valorparpadeo=0;
+    var arrFichas = [];
+    var arrnuevasfichas = [];
+    var zindex = 10;
+    var estado = false;
+
+    var temporizador;
+    var estadotitulo = 0;
+    var minuto = 1;
+    var segundo = 60;
+
+	$(document).ready(function(){
+        $(".btn-reinicio").click(function () {
+
+            var Textobuton = $(".btn-reinicio").text();
+            $("#score-text").text("0");
+            $("#movimientos-text").text("0");
+            $("#timer").text("02:00");
+            if (Textobuton == "Reiniciar") {
+               
+                $(".buttons").removeAttr("style");
+                $(".moves").removeAttr("style");
+                $(".score").removeAttr("style");
+                $("#titleterminado").hide();
+                $(".time").show();
+                $(".panel-tablero").show();
+                
+            }
+            $(".btn-reinicio").text("Reiniciar");
+            minuto = 1;
+            segundo = 60;
+            setTimeout(function () {
+               IniciarTemporizador();               
+            }, 1000);
+            GenerararFichas();
+            
+            $(".tamanoimg").draggable({
+                cursor: "pointer", cursorAt: { top: 56, left: 56 }, start: function (e, ui) {
+
+                    $(this).css("z-index", zindex++);
+
+                },
+                revert: estado
+            });
+
+            $(".tamanoimg").droppable({
+                drop: Drop
+
+            });
+        });
+
+        function runEffect() {
+            // get effect type from
+            var selectedEffect = "size";
+
+            // Most effect types need no options passed by default
+            var options = {};
+            // some effects have required parameters
+            if (selectedEffect === "scale") {
+                options = { percent: 50 };
+            } else if (selectedEffect === "size") {
+                options = { to: { width: 200, height: 60 } };
+            }
+
+            // Run the effect
+            $(".panel-tablero").hide(selectedEffect, options);
+            $(".time").hide();
+            $(".score").animate({ width: "1200px" }, 4000);
+            $(".moves").animate({ width: "1200px" }, 4000);
+           
+            $("#titleterminado").show();
+            $(".score").css("position", "relative", "top","100px");
+            $(".score").css("top", "90px");
+            $(".buttons").css("text-align", "center");
+            $(".buttons").css("position", "relative");
+            $(".buttons").css("top", "-120px");
+            $(".buttons").css("left", "500px");
+           
+        };
+
+        setInterval(function () {
+            EjecucionTitle();
+        }, 2000);
+
+		
+        function IniciarTemporizador() {
+           
+            segundo--;
+            if (segundo >= 0 && segundo <= 9) {
+                $("#timer").text("0" + minuto + ":0" + segundo);
+            } else {
+                $("#timer").text("0" + minuto + ":" + segundo);
+            }
+
+
+
+            if (segundo == 0 && minuto == 1) {
+                segundo = 60;
+                minuto = 0;
+                setTimeout(function () {
+                    IniciarTemporizador();
+                }, 1000);
+            } else {
+                if (segundo == 0 && minuto == 0) {
+                    runEffect();
+               
+                } else {
+                    setTimeout(function () {
+                        IniciarTemporizador();
+                    }, 1000);
+                }
+            }
+          
+        }
+		
+    });
+  
+
+    function EjecucionTitle() {
+        
+        if (estadotitulo==0) {
+            $(".main-titulo").animate({
+                color: '#FFF',
+                height: 'show'
+            },
+                2000);
+            //clearInterval();
+            estadotitulo = 1;
+        } else {
+            $(".main-titulo").animate({
+                color: '#DCFF0E',
+                height: 'show'
+            },
+                2000);
+            estadotitulo = 0;
+        }
+    }
+
+    function Drop(event, ui) {
+        estado = true;
+        
+        var draggableId = ui.draggable.attr("id");
+        var droppableId = $(this).attr("id");
+      
+        
+        var txt1 = draggableId.replace(/\D/g, '');
+        var txt2 = droppableId.replace(/\D/g, '');
+      
+        var fil01 = txt1.substr(0, 1);
+        var colum01 = txt1.substr(1, 1);
+        var fil02 = txt2.substr(0, 1);
+        var colum02 = txt2.substr(1, 1);
+        var srcim1 = $("#" + draggableId).attr('src');
+        var srcim2 = $("#" + droppableId).attr('src');
+    
+        if (fil01 == fil02) {
+            if (parseInt(colum01) + 1 == parseInt(colum02) || parseInt(colum01) - 1 == parseInt(colum02)) {
+                var Arracomparar = arrFichas;
+
+                var imagenarecuperar1 = Arracomparar[parseInt(fil01) - 1][parseInt(colum01) - 1].img;
+                var imagenarecuperar2 = Arracomparar[parseInt(fil02) - 1][parseInt(colum02) - 1].img;
+                Arracomparar[parseInt(fil01) - 1][parseInt(colum01) - 1].img = imagenarecuperar2;
+                Arracomparar[parseInt(fil02) - 1][parseInt(colum02) - 1].img = imagenarecuperar1;
+               
+                var valorObtenido = LogicaMoverFichas(Arracomparar);
+              
+                if (valorObtenido > 0) {
+                    $("#" + draggableId).attr("src", srcim2);
+                    $("#" + droppableId).attr("src", srcim1);
+                    $("#" + draggableId).removeAttr("style");
+                    $("#" + droppableId).removeAttr("style");
+                    LogicaFichas();
+                    estado = false;
+                    var mov = parseInt($("#movimientos-text").text()) + 1
+                    $("#movimientos-text").text(mov);
+                 
+                } else {
+                    estado = true;
+                }
+                
+            } 
+       
+
+        } else if (parseInt(fil01) + 1 == parseInt(fil02) || parseInt(fil01) - 1 == parseInt(fil02)) {
+            if (colum01 == colum02) {
+                var Arracomparar = arrFichas;
+
+                var imagenarecuperar1 = Arracomparar[parseInt(fil01) - 1][parseInt(colum01) - 1].img;
+                var imagenarecuperar2 = Arracomparar[parseInt(fil02) - 1][parseInt(colum02) - 1].img;
+                Arracomparar[parseInt(fil01) - 1][parseInt(colum01) - 1].img = imagenarecuperar2;
+                Arracomparar[parseInt(fil02) - 1][parseInt(colum02) - 1].img = imagenarecuperar1;
+
+                var valorObtenido = LogicaMoverFichas(Arracomparar);
+             
+                if (valorObtenido > 0) {
+                    $("#" + draggableId).attr("src", srcim2);
+                    $("#" + droppableId).attr("src", srcim1);
+                    $("#" + draggableId).removeAttr("style");
+                    $("#" + droppableId).removeAttr("style");
+                    LogicaFichas();
+                    var mov = parseInt($("#movimientos-text").text()) + 1
+                    $("#movimientos-text").text(mov);
+                    estado = false;
+                } else {
+                    estado = true;
+                }
+            }
+        }
+
+
+
+
+        $(".tamanoimg").draggable({
+            start: function (e, ui) {
+                //contenido = 1;
+                //var id = e.srcElement.id; ficha = id;
+            },
+            revert: estado
+        });
+    }
+
+
+    function LogicaMoverFichas(ArrTemp) {
+        
+         Fichasacomer = [];
+   
+        var countfilas = 0;
+        var countcolum = 0;
+        for (var i = 0; i < ArrTemp.length; i++) {
+            countfilas = i + 1;
+            for (var c = 0; c < ArrTemp[i].length; c++) {
+                //POR FILAS
+                countcolum = c + 1;
+                if (i <= 4) {
+                    if (ArrTemp[i][c].img == ArrTemp[i + 1][c].img) {
+                        if (ArrTemp[i][c].img == ArrTemp[i + 2][c].img) {
+                            InsertarFichasacomer(countfilas, countcolum);
+                            InsertarFichasacomer(countfilas + 1, countcolum);
+                            InsertarFichasacomer(countfilas + 2, countcolum);
+                            
+                            if (i == 3) {
+                                if (ArrTemp[i][c].img == ArrTemp[i + 3][c].img) {
+                                    InsertarFichasacomer(countfilas + 3, countcolum);
+                                    
+                                    if (i == 2) {
+                                        if (ArrTemp[i][c].img == ArrTemp[i + 4][c].img) {
+                                            InsertarFichasacomer(countfilas + 4, countcolum);
+                                           
+                                            if (i == 1) {
+                                                if (ArrTemp[i][c].img == ArrTemp[i + 5][c].img) {
+                                                    InsertarFichasacomer(countfilas + 5, countcolum);
+                                                   
+                                                    if (i == 0) {
+                                                        if (ArrTemp[i][c].img == ArrTemp[i + 6][c].img) {
+                                                            InsertarFichasacomer(countfilas + 6, countcolum);
+                                                            
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } //fin if i<=4
+
+
+                //coulmas
+                if (i <= 6 && c <= 4) {
+                    
+                    if (ArrTemp[i][c].img == ArrTemp[i][c + 1].img) {
+                        if (ArrTemp[i][c].img == ArrTemp[i][c + 2].img) {
+                            InsertarFichasacomer(countfilas, countcolum);
+                            InsertarFichasacomer(countfilas, countcolum + 1);
+                            InsertarFichasacomer(countfilas, countcolum + 2);
+                            
+                            if (c == 3) {
+                                if (ArrTemp[i][c].img == ArrTemp[i][c + 3].img) {
+                                    InsertarFichasacomer(countfilas, countcolum + 3);
+                                    
+                                    if (c == 2) {
+                                        if (ArrTemp[i][c].img == ArrTemp[i][c + 4].img) {
+                                            InsertarFichasacomer(countfilas, countcolum + 4);
+                                           
+                                            if (c == 1) {
+                                                if (ArrTemp[i][c].img == ArrTemp[i][c + 5].img) {
+                                                    InsertarFichasacomer(countfilas, countcolum + 5);
+                                                   
+                                                    if (c == 0) {
+                                                        if (ArrTemp[i][c].img == ArrTemp[i][c + 6].img) {
+                                                            InsertarFichasacomer(countfilas, countcolum + 6);
+                                                            
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                }//fin if ==0
+
+            } //fin for columnas
+
+
+
+
+
+
+        }
+
+        return Fichasacomer.length;
+    }
+function GenerararFichas(){
+
+arrFichas=[];
+var filas=7;
+var colum=7;
+var arr="[";
+for (var i = 1; i <= filas; i++) {
+	var IDF="c-"+i;
+	
+	arr="[";
+	for (var e = 1; e <= colum; e++) {
+		var ID=IDF+"-fil-"+e;
+	var valor=getRandomArbitrary();
+	 $("#"+ID).empty('');
+     $("#" + ID).append('<img  id="f' + i + 'c' + e + '"  src="image/' + valor +'.png" class="tamanoimg">');
+
+    if (e==7) {
+	arr+='{"Id": "'+ID+'" ,"columnas":'+e+',"img":'+valor+'}]';
+	}else{
+    arr+='{"Id": "'+ID+'" ,"columnas":'+e+',"img":'+valor+'},';
+	}
+
+   
+		
+	}
+
+	 arrFichas.push(JSON.parse(arr));
+
+}
+
+
+LogicaFichas();
+
+}
+
+    function GenerarFichaJuego() {
+        
+        for (var i = 0; i < arrFichas.length; i++) {
+            var fila = i+1;
+            //fila = fila + 1;
+            for (var c = 0; c < arrFichas[i].length; c++) {
+               
+                var ID = arrFichas[i][c].Id;
+                var col = c + 1;
+                $("#" + ID).empty('');
+                var img = arrFichas[i][c].img;
+                if (img==0) {
+                    var valor = getRandomArbitrary();
+                    arrFichas[i][c].img = valor;
+                    $("#" + ID).append('<img  id="f' + fila + 'c' + col + '"  src="image/' + valor + '.png" class="tamanoimg ">');
+                }else{
+                    $("#" + ID).append('<img  id="f' + fila + 'c' + col + '"  src="image/' + img + '.png" class="tamanoimg" >');
+                }
+            }
+           
+        }
+        
+       
+        LogicaFichas();
+    }
+
+    function InsertarFichasacomer(fi, co) {
+    
+	var existeparacomer=0
+	for (var i = 0; i < Fichasacomer.length; i++) {
+		if (Fichasacomer[i].fil==fi&&Fichasacomer[i].col==co) {
+            existeparacomer++;
+		}
+	}
+
+	if (existeparacomer==0) {
+		Fichasacomer.push({fil:fi,col:co});
+	}
+	
+}
+
+
+function LogicaFichas() {
+    
+	Fichasacomer=[];
+   
+
+var countfilas=0;
+      var countcolum=0;
+     for (var i = 0; i < arrFichas.length; i++) {
+        countfilas=i+1;
+     	for (var c = 0; c < arrFichas[i].length; c++) {
+     		//POR FILAS
+     		countcolum=c+1;
+     if (i<=4) {
+        if (arrFichas[i][c].img==arrFichas[i+1][c].img) {
+     	 if (arrFichas[i][c].img==arrFichas[i+2][c].img) {
+     	 	InsertarFichasacomer(countfilas,countcolum);
+     	 	InsertarFichasacomer(countfilas+1,countcolum);
+     	 	InsertarFichasacomer(countfilas+2,countcolum);
+     	   
+     	   if (i==3) {
+     	    if (arrFichas[i][c].img==arrFichas[i+3][c].img) {
+     	    	InsertarFichasacomer(countfilas+3,countcolum);
+     	    	
+     	    	if (i==2) {
+     	    	if (arrFichas[i][c].img==arrFichas[i+4][c].img) {
+     	    		InsertarFichasacomer(countfilas+4,countcolum);
+     	    	
+     	    		if (i==1) {
+     	    		if (arrFichas[i][c].img==arrFichas[i+5][c].img) {
+     	    			InsertarFichasacomer(countfilas+5,countcolum);
+     	    	
+     	    		if (i==0) {
+     	    		if (arrFichas[i][c].img==arrFichas[i+6][c].img) {
+     	    			InsertarFichasacomer(countfilas+6,countcolum);
+     	    	
+     	    	    }
+     	    	    }
+     	    	    }
+     	    	}
+     	    	}
+     	    	}
+     	    }
+     	    }
+         }
+      }
+     } //fin if i<=4
+
+
+     //coulmas
+    if (i<=6&&c<=4) {
+    	
+      if (arrFichas[i][c].img==arrFichas[i][c+1].img) {
+     	 if (arrFichas[i][c].img==arrFichas[i][c+2].img) {
+     	 	InsertarFichasacomer(countfilas,countcolum);
+     	 	InsertarFichasacomer(countfilas,countcolum+1);
+     	 	InsertarFichasacomer(countfilas,countcolum+2);
+     	  
+     	   if (c==3) {
+     	    if (arrFichas[i][c].img==arrFichas[i][c+3].img) {
+     	    	InsertarFichasacomer(countfilas,countcolum+3);
+     	    	
+     	    	if (c==2) {
+     	    	if (arrFichas[i][c].img==arrFichas[i][c+4].img) {
+     	    		InsertarFichasacomer(countfilas,countcolum+4);
+     	    		
+     	    		if (c==1) {
+     	    		if (arrFichas[i][c].img==arrFichas[i][c+5].img) {
+     	    		InsertarFichasacomer(countfilas,countcolum+5);
+     	    		
+     	    		if (c==0) {
+     	    		if (arrFichas[i][c].img==arrFichas[i][c+6].img) {
+     	    		InsertarFichasacomer(countfilas,countcolum+6);
+     	    		
+     	    	    }
+     	    	    }
+     	    	    }}
+     	    	}}
+     	    }}
+         }
+     }
+
+}//fin if ==0
+
+    } //fin for columnas
+     	
+
+
+
+
+
+     } //fin for filas
+
+
+if (Fichasacomer.length>0) {
+		var puntuacion=parseInt($("#score-text").text());
+		puntuacion=puntuacion+Fichasacomer.length;
+		$("#score-text").text(puntuacion)
+
+for (var u = 0; u < Fichasacomer.length; u++) {
+	var fil=Fichasacomer[u].fil;
+	var col=Fichasacomer[u].col;
+	var idcomer="f"+fil+"c"+col;
+
+      arrFichas[fil-1][col-1].img=0;
+	
+	$("#"+idcomer).addClass("fichacome");
+} //fin for ficha a comer
+
+
+for (var b = 0; b < arrFichas.length; b++) {
+		
+	var fila=b+1;
+
+  var columna1=arrFichas[b][0].img;
+  var columna2=arrFichas[b][1].img;
+  var columna3=arrFichas[b][2].img;
+  var columna4=arrFichas[b][3].img;
+  var columna5=arrFichas[b][4].img;
+  var columna6=arrFichas[b][5].img;
+    var columna7 = arrFichas[b][6].img;
+    var contadorvacios = 0;
+    var arrobtenermayor =[];
+    if (columna1==0) {
+        contadorvacios++;
+    } else {
+        arrobtenermayor.push(1);
+    }
+    if (columna2 == 0) {
+        contadorvacios++;
+    } else {
+        arrobtenermayor.push(2);
+    }
+    if (columna3 == 0) {
+        contadorvacios++;
+    } else {
+        arrobtenermayor.push(3);
+    }
+    if (columna4 == 0) {
+        contadorvacios++;
+    } else {
+        arrobtenermayor.push(4);
+    }
+    if (columna5 == 0) {
+        contadorvacios++;
+    } else {
+        arrobtenermayor.push(5);
+    }
+    if (columna6 == 0) {
+        contadorvacios++;
+    } else {
+        arrobtenermayor.push(6);
+    }
+    if (columna7 == 0) {
+        contadorvacios++;
+    } else {
+        arrobtenermayor.push(7);
+    }
+ 
+
+   
+    if (contadorvacios != 0) {
+      
+        
+        var invertida = arrobtenermayor.reverse(); 
+        var valor=0;
+        if (columna7 == 0) {
+            var vvv = 0;
+            for (var i = 0; i < arrobtenermayor.length; i++) {
+                if (vvv == 0) {
+                    if (arrobtenermayor[i] < 7) {
+                        vvv++;
+                        valor = arrobtenermayor[i];
+                        arrobtenermayor.splice(i, 1);
+                    }
+                }
+            }
+
+        
+            switch (valor) {
+                case 6: 
+                    columna7 = columna6;
+                    columna6 = 0;
+                    break;
+                case 5:
+                    columna7 = columna5;
+                    columna5 = 0;
+                    break;
+                case 4:
+                    columna7 = columna4;
+                    columna4 = 0;
+                    break;
+                case 3:
+                    columna7 = columna3;
+                    columna3 = 0;
+                    break;
+                case 2:
+                    columna7 = columna2;
+                    columna2 = 0;
+                    break;
+                case 1:
+                    columna7 = columna1;
+                    columna1 = 0;
+                    break;
+              
+            }
+
+            valor = 0;
+        }
+        if (columna6 == 0) {
+            if (arrobtenermayor.length>0) {
+                var vvv = 0;
+                for (var i = 0; i < arrobtenermayor.length; i++) {
+                    if (vvv==0) {
+                        if (arrobtenermayor[i] < 6) {
+                            vvv++;
+                            valor = arrobtenermayor[i];
+                        
+                            arrobtenermayor.splice(i, 1);
+                        }
+                    }
+                }
+
+        
+             
+            switch (valor) {                
+                case 5:
+                    columna6 = columna5;
+                    columna5 = 0;
+                    break;
+                case 4:
+                    columna6 = columna4;
+                    columna4 = 0;
+                    break;
+                case 3:
+                    columna6 = columna3;
+                    columna3 = 0;
+                    break;
+                case 2:
+                    columna6 = columna2;
+                    columna2 = 0;
+                    break;
+                case 1:
+                    columna6 = columna1;
+                    columna1 = 0;
+                    break;
+
+            }
+
+           
+            valor = 0;
+            }
+        }
+
+        if (columna5 == 0) {
+            if (arrobtenermayor.length > 0) {
+                var vvv = 0;
+                for (var i = 0; i < arrobtenermayor.length; i++) {
+                    if (vvv == 0) {
+                        if (arrobtenermayor[i] < 5) {
+                            vvv++;
+                            valor = arrobtenermayor[i];
+                            arrobtenermayor.splice(i, 1);
+                        }
+                    }
+                }
+
+           
+                switch (valor) {
+                    case 4:
+                        columna5 = columna4;
+                        columna4 = 0;
+                        break;
+                    case 3:
+                        columna5 = columna3;
+                        columna3 = 0;
+                        break;
+                    case 2:
+                        columna5 = columna2;
+                        columna2 = 0;
+                        break;
+                    case 1:
+                        columna5 = columna1;
+                        columna1 = 0;
+                        break;
+
+                }
+
+                valor = 0;
+            }
+        }
+
+        if (columna4 == 0) {
+            if (arrobtenermayor.length > 0) {
+                var vvv = 0;
+                for (var i = 0; i < arrobtenermayor.length; i++) {
+                    if (vvv == 0) {
+                        if (arrobtenermayor[i] < 4) {
+                            valor = arrobtenermayor[i];
+                            vvv++;
+                            arrobtenermayor.splice(i, 1);
+                        }
+                    }
+                }
+
+                switch (valor) {
+
+                    case 3:
+                        columna4 = columna3;
+                        columna3 = 0;
+                        break;
+                    case 2:
+                        columna4 = columna2;
+                        columna2 = 0;
+                        break;
+                    case 1:
+                        columna4 = columna1;
+                        columna1 = 0;
+                        break;
+
+                }
+
+             
+                valor = 0;
+            }
+        }
+
+
+        if (columna3 == 0) {
+            if (arrobtenermayor.length > 0) {
+                var vvv = 0;
+                for (var i = 0; i < arrobtenermayor.length; i++) {
+                    if (vvv == 0) {
+                        if (arrobtenermayor[i] < 3) {
+                            vvv++;
+                            valor = arrobtenermayor[i];
+                            arrobtenermayor.splice(i, 1);
+                        }
+                    }
+                }
+
+            
+                switch (valor) {
+
+                    case 2:
+                        columna3 = columna2;
+                        columna2 = 0;
+                        break;
+                    case 1:
+                        columna3 = columna1;
+                        columna1 = 0;
+                        break;
+
+                }
+                valor = 0;
+            }
+        }
+
+
+        if (columna2 == 0) {
+            if (arrobtenermayor.length > 0) {
+                var vvv = 0;
+                for (var i = 0; i < arrobtenermayor.length; i++) {
+                    if (vvv == 0) {
+                        if (arrobtenermayor[i] < 2) {
+                            vvv++
+                            valor = arrobtenermayor[i];
+                            arrobtenermayor.splice(i, 1);
+                        }
+                    }
+                }
+
+              
+                switch (valor) {
+
+                    case 1:
+                        columna1 = 0;
+                        break;
+
+                }
+                
+                valor = 0;
+            }
+        }
+     
+
+    }
+    arrFichas[b][0].img = columna1;
+    arrFichas[b][1].img = columna2;
+    arrFichas[b][2].img = columna3;
+    arrFichas[b][3].img = columna4;
+    arrFichas[b][4].img = columna5;
+    arrFichas[b][5].img = columna6;
+    arrFichas[b][6].img = columna7;
+
+  
+  
+
+  
+}
+
+   
+
+valorparpadeo=20;
+    parpadear();
+ 
+	}//fin if fichaacomerleng
+
+
+}
+
+function parpadear(){
+	valorparpadeo=valorparpadeo-1;
+	if (valorparpadeo>0) {
+ $('.fichacome').fadeIn(300).delay(0).fadeOut(300, parpadear) 
+    } else {
+        if (valorparpadeo == 0) {
+            $(".fichacome").remove();
+            GenerarFichaJuego();
+            $(".tamanoimg").draggable({
+                cursor: "pointer", cursorAt: { top: 56, left: 56 }, start: function (e, ui) {
+                  
+                    $(this).css("z-index", zindex++);
+                   
+                },
+                revert: estado
+            });
+
+            $(".tamanoimg").droppable({
+                drop: Drop
+
+            });
+        }
+       
+ }
+}
+	
+
+     
+
+	
+
+
+function getRandomArbitrary() {
+  return parseInt(Math.random() * (5 - 1) + 1);
+}
+</script>
+<style type="text/css">
+.tamanoimg {
+width: 100px;
+height:92px;
+}
+    .termino {
+        font-family: gameFont;
+        font-size: 1em;
+        color: #DCFF0E;
+        width: 100%;
+        text-align:center;
+    }
+</style>
+</head>
+<body>
+  <div class="main-container">
+    <h1 class="main-titulo">Match Game</h1>
+
+    <div class="panel-tablero">
+      <div class="col-1">
+
+        <div id="c-1-fil-1">
+        
+        </div>
+         <div id="c-1-fil-2">
+        
+        </div>
+          <div id="c-1-fil-3">
+        
+        </div>
+
+           <div id="c-1-fil-4">
+        
+        </div>
+         <div id="c-1-fil-5">
+        	
+        </div>
+          <div id="c-1-fil-6">
+      
+        </div>
+         <div id="c-1-fil-7">
+        	
+        </div>
+
+      </div>
+      <div class="col-2">
+
+          <div id="c-2-fil-1">
+        
+        </div>
+         <div id="c-2-fil-2">
+        
+        </div>
+          <div id="c-2-fil-3">
+        
+        </div>
+
+           <div id="c-2-fil-4">
+        
+        </div>
+         <div id="c-2-fil-5">
+        	
+        </div>
+          <div id="c-2-fil-6">
+      
+        </div>
+         <div id="c-2-fil-7">
+        	
+        </div>
+
+      </div>
+      <div class="col-3">
+
+          <div id="c-3-fil-1">
+        
+        </div>
+         <div id="c-3-fil-2">
+        
+        </div>
+          <div id="c-3-fil-3">
+        
+        </div>
+
+           <div id="c-3-fil-4">
+        
+        </div>
+         <div id="c-3-fil-5">
+        	
+        </div>
+          <div id="c-3-fil-6">
+      
+        </div>
+         <div id="c-3-fil-7">
+        	
+        </div>
+
+      </div>
+      <div class="col-4">
+
+          <div id="c-4-fil-1">
+        
+        </div>
+         <div id="c-4-fil-2">
+        
+        </div>
+          <div id="c-4-fil-3">
+        
+        </div>
+
+           <div id="c-4-fil-4">
+        
+        </div>
+         <div id="c-4-fil-5">
+        	
+        </div>
+          <div id="c-4-fil-6">
+      
+        </div>
+         <div id="c-4-fil-7">
+        	
+        </div>
+
+      </div>
+      <div class="col-5">
+
+          <div id="c-5-fil-1">
+        
+        </div>
+         <div id="c-5-fil-2">
+        
+        </div>
+          <div id="c-5-fil-3">
+        
+        </div>
+
+           <div id="c-5-fil-4">
+        
+        </div>
+         <div id="c-5-fil-5">
+        	
+        </div>
+          <div id="c-5-fil-6">
+      
+        </div>
+         <div id="c-5-fil-7">
+        	
+        </div>
+
+      </div>
+      <div class="col-6">
+
+          <div id="c-6-fil-1">
+        
+        </div>
+         <div id="c-6-fil-2">
+        
+        </div>
+          <div id="c-6-fil-3">
+        
+        </div>
+
+           <div id="c-6-fil-4">
+        
+        </div>
+         <div id="c-6-fil-5">
+        	
+        </div>
+          <div id="c-6-fil-6">
+      
+        </div>
+         <div id="c-6-fil-7">
+        	
+        </div>
+
+      </div>
+      <div class="col-7">
+
+          <div id="c-7-fil-1">
+        
+        </div>
+         <div id="c-7-fil-2">
+        
+        </div>
+          <div id="c-7-fil-3">
+        
+        </div>
+
+           <div id="c-7-fil-4">
+        
+        </div>
+         <div id="c-7-fil-5">
+        	
+        </div>
+          <div id="c-7-fil-6">
+      
+        </div>
+         <div id="c-7-fil-7">
+        	
+        </div>
+
+      </div>
+    </div>
+
+      <div style="text-align:center;width:100%;display:none" id="titleterminado">
+          <h1 class="termino">JUEGO TERMINADO</h1>
+
+      </div>
+    <div class="panel-score">
+   
+            <div class="score">
+                <h2 class="data-titulo">Puntuación</h2>
+                <span class="data-info" id="score-text">0</span>
+            </div>
+       
+      <div class="moves">
+        <h2 class="data-titulo">Movimientos</h2>
+        <span class="data-info" id="movimientos-text">0</span>
+      </div>
+      <div class="time">
+        <h2 class="data-titulo">Tiempo</h2>
+        <div class="data-info" id="timer">02:00</div>
+      </div>
+      <div class="buttons">
+        <button class="btn-reinicio">Iniciar</button>
+      </div>
+    </div>
+
+  </div>
+
+
+
+
+
+  <script src="js/jquery-3.0.0.js" type="text/javascript"></script>
+  <script type="text/javascript" src="js/jquery-ui.min.js"></script>
+  <script src="js/timer.js" type="text/javascript"></script>
+  <script type="text/javascript" src="js/app.js"></script>
+</body>
+</html>
